@@ -17,15 +17,29 @@ transporter.verify()
      .catch((err)=> {console.error("Email transporter verification failed:",err);
      });
 
-     export async function sendMail({ to,subject, html, text}){
+export async function sendMail({ to, subject, html, text }) {
+    try {
+        console.log("Attempting to send email to:", to);
 
-        const mailOptions={
-            from: process.env.Google_user,
+        const mailOptions = {
+            from: process.env.GOOGLE_USER,
             to,
             subject,
             html,
             text
         };
-            const details= await transporter.sendMail(mailOptions);
-            console.log("Email sent successfully:", details);
+
+        const details = await transporter.sendMail(mailOptions);
+
+        console.log("Email sent successfully!");
+        console.log("Message ID:", details.messageId);
+        console.log("Accepted:", details.accepted);
+        console.log("Rejected:", details.rejected);
+
+        return details;
+
+    } catch (error) {
+        console.error("Email sending failed:", error.message);
+        throw error;
     }
+}

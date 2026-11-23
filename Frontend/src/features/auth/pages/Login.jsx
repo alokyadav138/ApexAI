@@ -1,20 +1,40 @@
 import React, { useState } from 'react'
-import { Link } from "react-router-dom";
+import { Link,useNavigate} from "react-router-dom";
+import { useAuth } from "../hook/useAuth";
+import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
 
 const Login = () => {
   // Two-way binding with plain state variables
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleSubmit = (e) => {
+  const user = useSelector(state=>state.auth.user)
+  const loading= useSelector(state=> state.auth.loading)
+  
+  const { handleLogin } = useAuth() // Use the custom hook for authentication
+  
+  const navigate = useNavigate()
+
+
+  const handleSubmit =  async(e) => {
     e.preventDefault()
+   
+    const payload={ 
+      email,
+      password,
+    }
+    
+   const success = await handleLogin(payload);
 
-    // Replace with your API call
-    console.log('Login submitted:', { email, password })
-
-    setEmail('')
-    setPassword('')
+if (success) {
+    navigate("/");
+}
   }
+
+if(!loading && user){
+  return <Navigate to="/" replace/>
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-black via-neutral-950 to-red-950">
