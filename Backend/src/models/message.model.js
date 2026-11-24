@@ -16,6 +16,11 @@ const messageSchema = new mongoose.Schema(
             enum: ["user", "ai"],
             required: true,
         },
+        sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+},
     },
     { timestamps: true }
 );

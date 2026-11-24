@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 
-
 export function authUser(req, res, next) {
     const token = req.cookies.token;
 
@@ -10,17 +9,20 @@ export function authUser(req, res, next) {
             message: "Unauthorized access. Please log in.",
         });
     }
-    try {
-       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-       req.user = decoded;
-       next();
-    }
 
-    catch (err) {
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        console.log("Decoded Token:", decoded);
+
+        req.user = decoded;
+
+        return next();
+
+    } catch (err) {
         return res.status(401).json({
             success: false,
             message: "Unauthorized access. Invalid token.",
         });
     }
-
 }
