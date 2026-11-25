@@ -1,99 +1,164 @@
-import React, { useState } from 'react'
-import { Link,useNavigate} from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../hook/useAuth";
-import { useSelector } from 'react-redux';
-import { Navigate } from 'react-router-dom';
+import { useSelector } from "react-redux";
+
+const BatEmblem = ({ className = "w-6 h-6" }) => (
+    <svg viewBox="0 0 120 60" fill="currentColor" className={className}>
+        <path d="M60 8 L64 18 L68 10 L72 22 C84 16 102 14 118 22 C104 26 96 34 94 44 C84 36 74 38 68 46 L60 54 L52 46 C46 38 36 36 26 44 C24 34 16 26 2 22 C18 14 36 16 48 22 L52 10 L56 18 Z" />
+    </svg>
+);
 
 const Login = () => {
-  // Two-way binding with plain state variables
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-  const user = useSelector(state=>state.auth.user)
-  const loading= useSelector(state=> state.auth.loading)
-  
-  const { handleLogin } = useAuth() // Use the custom hook for authentication
-  
-  const navigate = useNavigate()
+    const user = useSelector((state) => state.auth.user);
+    const loading = useSelector((state) => state.auth.loading);
 
+    const { handleLogin } = useAuth();
+    const navigate = useNavigate();
 
-  const handleSubmit =  async(e) => {
-    e.preventDefault()
-   
-    const payload={ 
-      email,
-      password,
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            email,
+            password,
+        };
+
+        const success = await handleLogin(payload);
+
+        if (success) {
+            navigate("/");
+        }
+    };
+
+    if (!loading && user) {
+        return <Navigate to="/" replace />;
     }
-    
-   const success = await handleLogin(payload);
 
-if (success) {
-    navigate("/");
-}
-  }
+    return (
+        <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#050608] px-4 text-gray-100 selection:bg-amber-400/25 selection:text-amber-200">
+            {/* Gotham Moody Background & Bat-Signal */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#171d2b_0%,#07080c_55%,#030405_100%)]" />
 
-if(!loading && user){
-  return <Navigate to="/" replace/>
-}
+                {/* Tactical Grid */}
+                <div
+                    className="absolute inset-0 opacity-[0.04]"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(rgba(250,204,21,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(250,204,21,0.35) 1px, transparent 1px)",
+                        backgroundSize: "48px 48px",
+                    }}
+                />
 
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-black via-neutral-950 to-red-950">
-      <div className="w-full max-w-md rounded-2xl border border-red-900/40 bg-neutral-950/80 p-8 shadow-2xl shadow-red-950/50 backdrop-blur">
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-orange-500">
-          Welcome back
-        </h1>
-        <p className="mt-2 text-sm text-neutral-400">
-          Log in to continue to your account.
-        </p>
+                {/* Glowing Bat-Signal */}
+                <div className="animate-batsignal absolute -top-14 right-[10%] flex h-72 w-72 items-center justify-center rounded-full bg-amber-300/20 blur-2xl">
+                    <div className="flex h-40 w-40 items-center justify-center rounded-full border border-amber-300/40 bg-amber-200/25 shadow-[0_0_80px_rgba(251,191,36,0.45)]">
+                        <BatEmblem className="h-16 w-28 text-black/80" />
+                    </div>
+                </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <div>
-            <label htmlFor="email" className="block mb-1.5 text-sm font-medium text-neutral-300">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 placeholder-neutral-600 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-600/40"
-            />
-          </div>
+                {/* Flying Bats */}
+                <div className="animate-bat-1 absolute top-[20%] left-0 text-amber-400/35">
+                    <BatEmblem className="animate-wing h-5 w-10" />
+                </div>
+                <div className="animate-bat-2 absolute top-[65%] left-0 text-sky-400/25">
+                    <BatEmblem className="animate-wing h-4 w-8" />
+                </div>
+            </div>
 
-          <div>
-            <label htmlFor="password" className="block mb-1.5 text-sm font-medium text-neutral-300">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-              className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 placeholder-neutral-600 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-600/40"
-            />
-          </div>
+            {/* Batcomputer Auth Terminal Card */}
+            <div className="relative z-10 w-full max-w-md rounded-3xl border border-amber-400/25 bg-[#090b10]/85 p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(250,204,21,0.15)] backdrop-blur-2xl">
+                {/* Top Emblem & Status */}
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="flex h-11 w-16 items-center justify-center rounded-2xl border border-amber-400/35 bg-amber-400/10 text-amber-400 shadow-[0_0_25px_rgba(250,204,21,0.2)]">
+                        <BatEmblem className="h-6 w-11" />
+                    </div>
+                    <span className="flex items-center gap-1.5 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-sky-300">
+                        <span className="h-1.5 w-1.5 animate-ping rounded-full bg-sky-400" />
+                        WayneTech Auth
+                    </span>
+                </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-gradient-to-r from-red-700 via-red-600 to-rose-500 py-2.5 font-semibold text-white shadow-lg shadow-red-900/40 transition hover:from-red-600 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-neutral-950"
-          >
-            Log in
-          </button>
-        </form>
+                <h1 className="bg-gradient-to-r from-white via-amber-200 to-amber-400 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+                    Batcomputer Access
+                </h1>
+                <p className="mt-1.5 text-sm text-gray-400">
+                    Authenticate your credentials to enter the Batcave.
+                </p>
 
-        <p className="mt-6 text-center text-sm text-neutral-500">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-red-500 hover:text-red-400">
-            Create one
-          </Link>
-        </p>
-      </div>
-    </div>
-  )
-}
+                <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+                    <div>
+                        <label
+                            htmlFor="email"
+                            className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-gray-300"
+                        >
+                            Agent Email
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="bruce@waynetech.com"
+                            required
+                            className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-gray-100 placeholder-gray-600 outline-none transition focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20"
+                        />
+                    </div>
 
-export default Login
+                    <div>
+                        <label
+                            htmlFor="password"
+                            className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-gray-300"
+                        >
+                            Security Passkey
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter encrypted passkey"
+                            required
+                            className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-gray-100 placeholder-gray-600 outline-none transition focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 py-3 text-sm font-bold text-black shadow-[0_0_25px_rgba(250,204,21,0.35)] transition hover:scale-[1.01] hover:from-amber-300 hover:to-yellow-300 active:scale-[0.99] disabled:opacity-50"
+                    >
+                        <BatEmblem className="h-4 w-7" />
+                        <span>
+                            {loading ? "Decrypting Access..." : "Initialize Session"}
+                        </span>
+                    </button>
+                </form>
+
+                <p className="mt-6 text-center text-sm text-gray-400">
+                    New operative?{" "}
+                    <Link
+                        to="/register"
+                        className="font-semibold text-amber-400 transition hover:text-amber-300 hover:underline"
+                    >
+                        Request clearance
+                    </Link>
+                </p>
+            </div>
+
+            {/* Footer Credit */}
+            <p className="relative z-10 mt-6 font-mono text-xs tracking-wider text-gray-500">
+                Engineered & Made by{" "}
+                <span className="font-semibold text-amber-400/90">
+                    Alok Yadav
+                </span>
+            </p>
+        </div>
+    );
+};
+
+export default Login;

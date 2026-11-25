@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { registerValidator, loginValidator } from "../validators/auth.validator.js";
-import { register, verifyEmail, login, getMe } from "../controllers/auth.controller.js";
+import { register, verifyEmail, login, getMe, logout } from "../controllers/auth.controller.js";
 import { authUser } from "../middleware/auth.middleware.js";
 
 
@@ -33,7 +33,7 @@ authRouter.post("/login", loginValidator, login);
  */
 authRouter.get('/get-me',authUser,getMe);
  
-
+authRouter.post("/logout", logout);
 
 /**
  * @route GET /api/auth/verify-email

@@ -1,12 +1,12 @@
-
-
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatGroq } from "@langchain/groq";
+
 import {
     HumanMessage,
     SystemMessage,
     AIMessage
 } from "@langchain/core/messages";
+
 
 const geminiModel = new ChatGoogleGenerativeAI({
     model: "gemini-3.5-flash-lite",
@@ -20,7 +20,8 @@ const groqModel = new ChatGroq({
     maxRetries: 1,
 });
 
-// Convert AI response into a string
+
+// Extract text
 function extractText(content) {
     if (typeof content === "string") {
         return content;
@@ -37,20 +38,32 @@ function extractText(content) {
     return String(content ?? "");
 }
 
-// Gemini with Groq fallback
-async function invokeWithFallback(messages) {
 
-    const formattedMessages = messages.map(msg => {
+// Format messages
+function formatMessages(messages) {
+    return messages.map(msg => {
         if (msg.role === "user") {
             return new HumanMessage(msg.content);
-        } 
-        else if (msg.role === "ai") {
+        }
+
+        if (msg.role === "ai") {
             return new AIMessage(msg.content);
-        } 
-        else if (msg.role === "system") {
+        }
+
+        if (msg.role === "system") {
             return new SystemMessage(msg.content);
         }
+
+        return null;
+
     }).filter(Boolean);
+}
+
+
+// Existing Gemini + Groq fallback
+async function invokeWithFallback(messages) {
+
+    const formattedMessages = formatMessages(messages);
 
     try {
         console.log("Trying Gemini API...");
@@ -62,6 +75,7 @@ async function invokeWithFallback(messages) {
         return extractText(response.content);
 
     } catch (geminiError) {
+
         console.error("GEMINI FAILED:", geminiError.message);
         console.log("Switching to Groq...");
 
@@ -73,19 +87,77 @@ async function invokeWithFallback(messages) {
             return extractText(response.content);
 
         } catch (groqError) {
+
             console.error("GROQ FAILED:", groqError.message);
+
             throw groqError;
         }
     }
 }
 
-// Generate AI response
+
+// Normal AI response
 export async function generateResponse(messages) {
     return await invokeWithFallback(messages);
 }
 
+
+// STREAMING AI RESPONSE
+export async function* generateResponseStream(messages) {
+    const formattedMessages = formatMessages(messages);
+
+    try {
+        console.log("Starting Groq streaming...");
+
+        const stream = await groqModel.stream(formattedMessages);
+
+        for await (const chunk of stream) {
+            const content = extractText(chunk.content);
+
+            if (content) {
+                yield content;
+            }
+        }
+
+        console.log("Groq streaming completed!");
+
+    } catch (error) {
+        console.error("GROQ STREAM FAILED:", error.message);
+        throw error;
+    }
+}
+
+// ANALYZE IMAGE USING GEMINI VISION
+export async function analyzeImage(buffer, mimeType, userPrompt) {
+    try {
+        const base64Image = buffer.toString("base64");
+
+        const response = await geminiModel.invoke([
+            new HumanMessage({
+                content: [
+                    {
+                        type: "text",
+                        text: userPrompt || "Analyze this image in detail. Describe its contents and important information."
+                    },
+                    {
+                        type: "image_url",
+                        image_url: `data:${mimeType};base64,${base64Image}`
+                    }
+                ]
+            })
+        ]);
+
+        return extractText(response.content);
+
+    } catch (error) {
+        console.error("IMAGE ANALYSIS ERROR:", error.message);
+        throw new Error("Unable to analyze image. Check Gemini API quota and configuration.");
+    }
+}
+
 // Generate chat title
 export async function generateChatTitle(message) {
+
     return await invokeWithFallback([
         {
             role: "system",

@@ -23,9 +23,12 @@
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "langchain": "^1.5.11",
+    "mammoth": "^1.13.0",
     "mongoose": "^9.10.0",
     "morgan": "^1.12.1",
+    "multer": "^2.5.0",
     "nodemailer": "^10.0.9",
+    "pdf-parse": "^1.1.1",
     "socket.io": "^4.8.4"
   }
 }

@@ -1,1 +1,98 @@
 @import "tailwindcss";
+/* Batmobile continuous drive across the Batcave bridge */
+@keyframes batmobileDrive {
+    0% {
+        transform: translateX(-260px);
+    }
+    100% {
+        transform: translateX(calc(100vw + 260px));
+    }
+}
+
+/* Bats flying across the cave */
+@keyframes batFly1 {
+    0% {
+        transform: translate(-10vw, 20px) scale(0.8) rotate(-5deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.7;
+    }
+    50% {
+        transform: translate(50vw, -35px) scale(1) rotate(6deg);
+    }
+    85% {
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(110vw, 10px) scale(0.85) rotate(-4deg);
+        opacity: 0;
+    }
+}
+
+@keyframes batFly2 {
+    0% {
+        transform: translate(110vw, 60px) scaleX(-1) scale(0.7);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.55;
+    }
+    50% {
+        transform: translate(45vw, 15px) scaleX(-1) scale(0.95);
+    }
+    80% {
+        opacity: 0.55;
+    }
+    100% {
+        transform: translate(-10vw, 50px) scaleX(-1) scale(0.75);
+        opacity: 0;
+    }
+}
+
+/* Subtle wing flap */
+@keyframes wingFlap {
+    0%, 100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(0.55);
+    }
+}
+
+/* Bat-signal atmospheric pulse */
+@keyframes batSignalPulse {
+    0%, 100% {
+        opacity: 0.14;
+        transform: scale(1) rotate(-12deg);
+    }
+    50% {
+        opacity: 0.24;
+        transform: scale(1.04) rotate(-10deg);
+    }
+}
+
+.animate-batmobile {
+    animation: batmobileDrive 14s linear infinite;
+}
+
+.animate-bat-1 {
+    animation: batFly1 18s ease-in-out infinite;
+}
+
+.animate-bat-2 {
+    animation: batFly2 22s ease-in-out infinite 4s;
+}
+
+.animate-bat-3 {
+    animation: batFly1 25s ease-in-out infinite 9s;
+}
+
+.animate-wing {
+    transform-origin: center;
+    animation: wingFlap 0.35s ease-in-out infinite;
+}
+
+.animate-batsignal {
+    animation: batSignalPulse 6s ease-in-out infinite;
+}
