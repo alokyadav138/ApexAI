@@ -2,6 +2,14 @@ import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendMail } from "../services/mail.service.js";
 
+
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax"
+};
 /**
  * @desc Register a new user
  * @route POST /api/auth/register
@@ -41,7 +49,7 @@ await sendMail({
     html: `<p>Hello ${user.username},</p>
     <p>Thank you for registering at Perplexity. We're excited to have you on board!</p>
     <p>Please verify your email address by clicking the link below:</p>
-    <a href="http://localhost:8000/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+   <a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
     <p>If you did not create an account, please ignore this email.</p>
     <p>Best regards,<br>The Perplexity Team</p>`})
   
@@ -103,12 +111,10 @@ export async function login(req, res) {
             expiresIn: "7d"
         }
     );
-
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax"
-    });
+res.cookie("token", token, {
+    ...cookieOptions,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
 
     return res.status(200).json({
         success: true,
@@ -173,7 +179,7 @@ export async function verifyEmail(req, res) {
         const html = `
             <h1>Email Verified</h1>
             <p>Your email has been successfully verified. You can now log in to your account.</p>
-            <a href="http://localhost:8000/login">Login</a>
+           <a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
         `;
 
         return res.send(html);
@@ -187,11 +193,7 @@ export async function verifyEmail(req, res) {
 }
 
 export async function logout(req, res) {
-    res.clearCookie("token", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax"
-    });
+ res.clearCookie("token", cookieOptions);
 
     return res.status(200).json({
         success: true,

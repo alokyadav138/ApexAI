@@ -1,10 +1,8 @@
 import axios from "axios";
-
 const api = axios.create({
-    baseURL: "http://localhost:8000",
+    baseURL: import.meta.env.VITE_API_URL,
     withCredentials: true,
 });
-
 
 // COMMON SSE READER
 const readStream = async (response, onEvent) => {
@@ -126,8 +124,8 @@ export const sendMessage = async (
         formData.append("file", file);
     }
 
-    const response = await fetch(
-        "http://localhost:8000/api/chats/message",
+const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/chats/message`,
         {
             method: "POST",
             credentials: "include",
@@ -145,8 +143,8 @@ export const sendMessage = async (
 
 // REGENERATE MESSAGE
 export const regenerateMessage = async (messageId, onEvent) => {
-    const response = await fetch(
-        `http://localhost:8000/api/chats/${messageId}/regenerate`,
+const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/chats/${messageId}/regenerate`,
         {
             method: "POST",
             credentials: "include",
