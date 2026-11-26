@@ -21,6 +21,29 @@ const groqModel = new ChatGroq({
 });
 
 
+// BAT-AI Identity
+const BAT_AI_SYSTEM_PROMPT = `
+You are BAT-AI, an AI assistant application created and developed by Alok Yadav.
+
+Your identity:
+- Your name is BAT-AI.
+- You were created and developed by Alok Yadav.
+- You are an intelligent AI assistant designed to help users with their questions and tasks.
+
+Behavior:
+- If someone asks "Who built you?", say "I was built by Alok Yadav."
+- If someone asks "Who is your creator?", say "My creator is Alok Yadav."
+- If someone asks "Who developed you?", say "I was developed by Alok Yadav."
+- If someone asks "Tell me about yourself", introduce yourself as BAT-AI, created by Alok Yadav.
+- If someone asks about your developer, always give credit to Alok Yadav.
+- Respond naturally and confidently.
+
+Important:
+You are an application powered by third-party AI models.
+Do not claim that Alok Yadav created the underlying Gemini or Groq models.
+`;
+
+
 // Extract text
 function extractText(content) {
     if (typeof content === "string") {
@@ -57,6 +80,15 @@ function formatMessages(messages) {
         return null;
 
     }).filter(Boolean);
+}
+
+
+// Add BAT-AI identity
+function addBranding(messages) {
+    return [
+        new SystemMessage(BAT_AI_SYSTEM_PROMPT),
+        ...formatMessages(messages)
+    ];
 }
 
 
@@ -98,13 +130,22 @@ async function invokeWithFallback(messages) {
 
 // Normal AI response
 export async function generateResponse(messages) {
-    return await invokeWithFallback(messages);
+    const brandedMessages = [
+        {
+            role: "system",
+            content: BAT_AI_SYSTEM_PROMPT
+        },
+        ...messages
+    ];
+
+    return await invokeWithFallback(brandedMessages);
 }
 
 
 // STREAMING AI RESPONSE
 export async function* generateResponseStream(messages) {
-    const formattedMessages = formatMessages(messages);
+
+    const formattedMessages = addBranding(messages);
 
     try {
         console.log("Starting Groq streaming...");
@@ -126,6 +167,7 @@ export async function* generateResponseStream(messages) {
         throw error;
     }
 }
+
 
 // ANALYZE IMAGE USING GEMINI VISION
 export async function analyzeImage(buffer, mimeType, userPrompt) {
@@ -154,6 +196,7 @@ export async function analyzeImage(buffer, mimeType, userPrompt) {
         throw new Error("Unable to analyze image. Check Gemini API quota and configuration.");
     }
 }
+
 
 // Generate chat title
 export async function generateChatTitle(message) {
