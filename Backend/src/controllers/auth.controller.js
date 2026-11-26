@@ -17,52 +17,99 @@ const cookieOptions = {
  * @body {username, email, password}
  */
 export async function register(req, res) {
-    
-  const { username, email, password } = req.body;
+    try {
+        const { username, email, password } = req.body;
 
-    const isUserAlreadyExists = await userModel.findOne({
-        $or: [{ email }, { username }]
-    });
+        const existingEmail = await userModel.findOne({ email });
 
-    if (isUserAlreadyExists) {
-        return res.status(400).json({
+        if (existingEmail) {
+            if (existingEmail.verified) {
+                return res.status(400).json({
+                    success: false,
+                    err: "User already exists",
+                    message: "User already exists"
+                });
+            }
+
+            const emailVerificationToken = jwt.sign(
+                { email: existingEmail.email },
+                process.env.JWT_SECRET,
+                { expiresIn: "1d" }
+            );
+
+            await sendMail({
+                to: existingEmail.email,
+                subject: "Verify your BAT-AI account",
+                html: `
+                    <h2>Hello ${existingEmail.username},</h2>
+                    <p>Please verify your email address.</p>
+                    <a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">
+                        Verify Email
+                    </a>
+                `
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Verification email sent again. Please check your inbox."
+            });
+        }
+
+        const existingUsername = await userModel.findOne({ username });
+
+        if (existingUsername) {
+            return res.status(400).json({
+                success: false,
+                err: "Username already exists"
+            });
+        }
+
+        const user = await userModel.create({
+            username,
+            email,
+            password
+        });
+
+        const emailVerificationToken = jwt.sign(
+            { email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        await sendMail({
+            to: user.email,
+            subject: "Welcome to BAT-AI - Verify Your Email",
+            html: `
+                <h2>Hello ${user.username},</h2>
+                <p>Thank you for registering at BAT-AI.</p>
+                <p>Please verify your email address:</p>
+                <a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">
+                    Verify Email
+                </a>
+                <p>Welcome to BAT-AI!</p>
+            `
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "User registered successfully. Please verify your email.",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error("Registration error:", error);
+
+        return res.status(500).json({
             success: false,
-            err: "User already exists"
+            message: "Registration failed",
+            err: error.message
         });
     }
-
-
-    const user = await userModel.create({
-        username,
-        email,
-        password
-    });
-     
-    const emailVerificationToken= jwt.sign({
-        email:user.email,},process.env.JWT_SECRET)
-    
-
-
-await sendMail({
-    to: user.email,
-    subject: "Welcome to Perplexity",
-    html: `<p>Hello ${user.username},</p>
-    <p>Thank you for registering at Perplexity. We're excited to have you on board!</p>
-    <p>Please verify your email address by clicking the link below:</p>
-   <a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
-    <p>If you did not create an account, please ignore this email.</p>
-    <p>Best regards,<br>The Perplexity Team</p>`})
-  
-    res.status(201).json({
-        success: true,
-        message: "User registered successfully.",
-        user:{
-          id: user._id,
-          username: user.username,
-          email: user.email
-        }
-    });
-        }  
+}
 
 /**
  * @desc Login a user
@@ -167,28 +214,33 @@ export async function verifyEmail(req, res) {
         });
 
         if (!user) {
-            return res.status(400).json({
-                success: false,
-                err: "Invalid token"
-            });
+            return res.status(400).send("User not found");
         }
 
-        user.verified = true;
-        await user.save();
+        if (!user.verified) {
+            user.verified = true;
+            await user.save();
+        }
 
-        const html = `
-            <h1>Email Verified</h1>
-            <p>Your email has been successfully verified. You can now log in to your account.</p>
-           <a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
-        `;
+        return res.send(`
+            <html>
+                <body style="text-align:center; padding:50px; font-family:Arial;">
+                    <h1>Email Verified Successfully!</h1>
+                    <p>Your BAT-AI account is now verified.</p>
+                    <a href="${process.env.FRONTEND_URL}/login">
+                        Login to BAT-AI
+                    </a>
+                </body>
+            </html>
+        `);
 
-        return res.send(html);
+    } catch (error) {
+        console.error("Email verification error:", error.message);
 
-    } catch (err) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid or expired token"
-        });
+        return res.status(400).send(`
+            <h2>Invalid or expired verification link.</h2>
+            <p>Please request a new verification email.</p>
+        `);
     }
 }
 
