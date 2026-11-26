@@ -1,41 +1,28 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.GOOGLE_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-    }
-});
-
-transporter.verify()
-    .then(() => {
-        console.log("Email transporter is ready to send emails");
-    })
-    .catch((err) => {
-        console.error("Email transporter verification failed:", err.message);
-    });
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendMail({ to, subject, html, text }) {
     try {
         console.log("Attempting to send email to:", to);
 
-        const mailOptions = {
-            from: process.env.GOOGLE_USER,
-            to,
+        const { data, error } = await resend.emails.send({
+            from: "BAT-AI <onboarding@resend.dev>",
+            to: [to],
             subject,
             html,
             text
-        };
+        });
 
-        const details = await transporter.sendMail(mailOptions);
+        if (error) {
+            console.error("Resend email error:", error);
+            throw new Error(error.message);
+        }
 
         console.log("Email sent successfully!");
-        console.log("Message ID:", details.messageId);
-        console.log("Accepted:", details.accepted);
-        console.log("Rejected:", details.rejected);
+        console.log("Email ID:", data.id);
 
-        return details;
+        return data;
 
     } catch (error) {
         console.error("Email sending failed:", error.message);
